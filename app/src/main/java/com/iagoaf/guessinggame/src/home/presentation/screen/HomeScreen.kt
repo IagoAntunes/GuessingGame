@@ -1,13 +1,14 @@
 package com.iagoaf.guessinggame.src.home.presentation.screen
 
-import android.widget.Space
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,15 +17,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,19 +38,36 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.iagoaf.guessinggame.R
-import com.iagoaf.guessinggame.ui.theme.AppColors
-import com.iagoaf.guessinggame.ui.theme.notoSansFont
+import com.iagoaf.guessinggame.core.ui.theme.AppColors
+import com.iagoaf.guessinggame.core.ui.theme.notoSansFont
+import com.iagoaf.guessinggame.src.home.presentation.components.LetterBoxBig
+import com.iagoaf.guessinggame.src.home.presentation.components.LetterBoxBigEnum
+import com.iagoaf.guessinggame.src.home.presentation.components.LetterUsedBox
+import com.iagoaf.guessinggame.src.home.presentation.components.LetterUsedBoxState
+import com.iagoaf.guessinggame.src.home.presentation.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
 
+    val viewModel: HomeViewModel = hiltViewModel()
+
     val guessState = remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.getAll()
+    }
+
+
+
 
     Scaffold(
         content = { paddingValues ->
@@ -62,7 +83,10 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         R.drawable.guessing_game_logo,
                     ),
                     contentDescription = "Guessing Game Logo",
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(
@@ -75,32 +99,36 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         text = AnnotatedString.Builder().apply {
                             withStyle(
                                 style = SpanStyle(
-                                    fontSize = 16.sp,
-                                    color = AppColors.orange
+                                    fontSize = 20.sp,
+                                    color = AppColors.orange,
+                                    fontWeight = FontWeight.Bold
                                 )
                             ) {
-                                append("5")
+                                append(viewModel.wrongAttempts.intValue.toString())
                             }
                             withStyle(
                                 style = SpanStyle(
-                                    fontSize = 16.sp,
-                                    color = AppColors.gray500
+                                    fontSize = 18.sp,
+                                    color = AppColors.gray500,
+                                    fontWeight = FontWeight.Medium
                                 )
                             ) {
                                 append(" de ")
                             }
                             withStyle(
                                 style = SpanStyle(
-                                    fontSize = 16.sp,
-                                    color = AppColors.gray500
+                                    fontSize = 20.sp,
+                                    color = AppColors.gray500,
+                                    fontWeight = FontWeight.Medium
                                 )
                             ) {
-                                append("10")
+                                append(viewModel.maximumAttempts.intValue.toString())
                             }
                             withStyle(
                                 style = SpanStyle(
-                                    fontSize = 16.sp,
-                                    color = AppColors.gray500
+                                    fontSize = 18.sp,
+                                    color = AppColors.gray500,
+                                    fontWeight = FontWeight.Medium
                                 )
                             ) {
                                 append(" tentativas")
@@ -112,7 +140,12 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         painter = painterResource(R.drawable.ic_refresh),
                         contentDescription = "Refresh",
                         colorFilter = ColorFilter.tint(AppColors.purpleL),
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable {
+                                viewModel.resetWordGame()
+                                guessState.value = ""
+                            }
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -120,6 +153,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .clip(shape = RoundedCornerShape(10.dp))
                         .background(AppColors.gray200)
+                        .fillMaxWidth()
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -140,17 +174,30 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 fontWeight = FontWeight.Bold,
                                 color = AppColors.purpleM
                             )
-                            Text(
-                                "Biblioteca para criar interfaces Web com Javascript.",
-                                fontFamily = notoSansFont,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = AppColors.purpleM
-                            )
+                            viewModel.selectedWord?.let {
+                                Text(
+                                    it.value?.hint ?: "NAO",
+                                    fontFamily = notoSansFont,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = AppColors.purpleM
+                                )
+                            }
                         }
                     }
                 }
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(16.dp))
+                LazyRow {
+                    items(viewModel.selectedWord.value?.name?.length ?: 0) { index ->
+                        val letter = viewModel.selectedWord.value?.name?.get(index).toString()
+                        LetterBoxBig(
+                            letter,
+                            if (index < viewModel.indexWordGuess.intValue) LetterBoxBigEnum.CORRECT else LetterBoxBigEnum.IDLE
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
                 Text(
                     "Palpite",
                     fontFamily = notoSansFont,
@@ -162,9 +209,22 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    TextField(
+                    BasicTextField(
                         value = guessState.value,
-                        onValueChange = { },
+                        onValueChange = { item ->
+                            if (guessState.value.isEmpty()) {
+                                guessState.value = item
+                            }else if(item == ""){
+                                guessState.value = ""
+                            }
+                        },
+                        textStyle = TextStyle(
+                            fontFamily = notoSansFont,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.black,
+                            textAlign = TextAlign.Center,
+                        ),
                         modifier = Modifier
                             .size(46.dp)
                             .clip(RoundedCornerShape(7.dp))
@@ -174,11 +234,25 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 shape = RoundedCornerShape(7.dp)
                             )
                             .background(AppColors.gray200)
+                            .padding(0.dp), // Remove qualquer padding adicional
+                        decorationBox = { innerTextField ->
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize(),
+                            ) {
+                                innerTextField()
+                            }
+                        }
                     )
                     Spacer(Modifier.width(16.dp))
                     Button(
                         onClick = {
-
+                            if (guessState.value.isEmpty()) {
+                                //TODO
+                            } else {
+                                viewModel.tryGuess(guessState.value)
+                                guessState.value = ""
+                            }
                         },
                         shape = RoundedCornerShape(7.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -200,6 +274,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         )
                     }
                 }
+
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
@@ -210,6 +285,19 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.Medium,
                     color = AppColors.black
                 )
+                Spacer(Modifier.height(8.dp))
+                LazyRow(
+                ) {
+                    items(viewModel.lettersTried.size) { index ->
+                        val letterTry =
+                            viewModel.lettersTried[viewModel.lettersTried.size - 1 - index]
+                        LetterUsedBox(
+                            if (letterTry["isCorrect"] as Boolean) LetterUsedBoxState.SUCCESS else LetterUsedBoxState.FAILED,
+                            letterTry["letter"] as String,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
             }
         }
     )

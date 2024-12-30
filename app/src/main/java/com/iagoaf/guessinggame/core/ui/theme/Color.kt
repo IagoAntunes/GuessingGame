@@ -1,4 +1,4 @@
-package com.iagoaf.guessinggame.ui.theme
+package com.iagoaf.guessinggame.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

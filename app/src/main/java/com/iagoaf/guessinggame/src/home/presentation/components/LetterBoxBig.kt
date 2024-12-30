@@ -9,28 +9,46 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iagoaf.guessinggame.ui.theme.AppColors
-import com.iagoaf.guessinggame.ui.theme.notoSansFont
+import com.iagoaf.guessinggame.core.ui.theme.AppColors
+import com.iagoaf.guessinggame.core.ui.theme.notoSansFont
+
+enum class LetterBoxBigEnum(
+    val backgroundColor: Color,
+    val textColor:Color,
+){
+    CORRECT(
+        backgroundColor = AppColors.greenLight,
+        textColor = AppColors.green
+    ),
+    IDLE(
+        backgroundColor = AppColors.gray200,
+        textColor = AppColors.white
+    ),
+}
 
 @Composable
-fun LetterBoxBig() {
+fun LetterBoxBig(
+    letter: String?,
+    state: LetterBoxBigEnum,
+) {
     Box(
         modifier = Modifier
             .size(46.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(AppColors.greenLight),
+            .background(state.backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            "R",
+            if(state == LetterBoxBigEnum.CORRECT) letter?.uppercase() ?: "" else "",
             fontFamily = notoSansFont,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = AppColors.green
+            color = state.textColor
         )
     }
 }
@@ -38,5 +56,8 @@ fun LetterBoxBig() {
 @Preview
 @Composable
 private fun PreviewLetterBox() {
-    LetterBoxBig()
+    LetterBoxBig(
+        letter = null,
+        state = LetterBoxBigEnum.IDLE
+    )
 }

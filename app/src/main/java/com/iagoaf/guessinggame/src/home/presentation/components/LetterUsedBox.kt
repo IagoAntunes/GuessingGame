@@ -11,11 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iagoaf.guessinggame.ui.theme.AppColors
-import com.iagoaf.guessinggame.ui.theme.notoSansFont
+import com.iagoaf.guessinggame.core.ui.theme.AppColors
+import com.iagoaf.guessinggame.core.ui.theme.notoSansFont
 
 enum class LetterUsedBoxState {
     SUCCESS,
@@ -29,7 +30,7 @@ fun LetterUsedBox(
 ) {
     Box(
         modifier = Modifier
-            .size(46.dp)
+            .size(44.dp)
             .clip(RoundedCornerShape(10.dp))
             .border(
                 width = 1.dp,
@@ -45,17 +46,18 @@ fun LetterUsedBox(
                     LetterUsedBoxState.FAILED -> AppColors.orange
                 }
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
-            letter,
+            letter.uppercase(),
             fontFamily = notoSansFont,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
             color = when (state) {
                 LetterUsedBoxState.SUCCESS -> AppColors.green
                 LetterUsedBoxState.FAILED -> AppColors.black
-            }
+            },
+            textAlign = TextAlign.Center
         )
     }
 }

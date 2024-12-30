@@ -1,0 +1,44 @@
+{
+  "palavras": [
+    {
+      "word": "banana",
+      "hint": "Fruta amarela e rica em potássio"
+    },
+    {
+      "word": "carro",
+      "hint": "Veículo usado para transporte terrestre"
+    },
+    {
+      "word": "cachorro",
+      "hint": "Melhor amigo do homem"
+    },
+    {
+      "word": "computador",
+      "hint": "Usado para trabalhar, estudar e acessar a internet"
+    },
+    {
+      "word": "montanha",
+      "hint": "Formação geológica elevada"
+    },
+    {
+      "word": "oceano",
+      "hint": "Corpo de água salgado que cobre grande parte da Terra"
+    },
+    {
+      "word": "livro",
+      "hint": "Fonte de conhecimento e histórias impressas"
+    },
+    {
+      "word": "pizza",
+      "hint": "Comida italiana famosa em todo o mundo"
+    },
+    {
+      "word": "avião",
+      "hint": "Meio de transporte aéreo"
+    },
+    {
+      "word": "câmera",
+      "hint": "Usada para tirar fotos e gravar vídeos"
+    }
+  ]
+}
