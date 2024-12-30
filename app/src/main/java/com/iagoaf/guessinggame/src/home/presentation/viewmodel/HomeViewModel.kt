@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iagoaf.guessinggame.src.home.domain.model.WordModel
 import com.iagoaf.guessinggame.src.home.domain.repository.IWordsRepository
-import com.iagoaf.guessinggame.src.home.presentation.screen.HomeScreen
+import com.iagoaf.guessinggame.src.home.presentation.state.HomeListener
 import com.iagoaf.guessinggame.src.home.presentation.state.HomeState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -20,6 +20,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val state = mutableStateOf<HomeState>(HomeState.Idle)
+    val listener = mutableStateOf<HomeListener>(HomeListener.Idle)
 
     var selectedWord = mutableStateOf<WordModel?>(null)
         private set
@@ -42,28 +43,32 @@ class HomeViewModel @Inject constructor(
     }
 
     fun resetWordGame() {
-        state as HomeState.Success
-        selectRandomWord(state.words)
+        selectRandomWord((state.value as HomeState.Success).words)
         indexWordGuess.intValue = 0
         lettersTried.clear()
         wrongAttempts.intValue = 0
+        listener.value = HomeListener.Idle
+        (state.value as HomeState.Success).gameEnded = false
     }
 
     fun tryGuess(
         letter: String
     ) {
-        state as HomeState.Success
         selectedWord.value?.name?.let { name ->
             if (name[indexWordGuess.intValue].toString().equals(letter, ignoreCase = true)) {
                 indexWordGuess.intValue++
                 lettersTried.add(mapOf("letter" to letter, "isCorrect" to true))
             } else {
-                //TODO EMITIR LISTENER COM SNACK
                 lettersTried.add(mapOf("letter" to letter, "isCorrect" to false))
                 wrongAttempts.intValue++
+                if (wrongAttempts.intValue == maximumAttempts.intValue) {
+                    listener.value = HomeListener.GameOver
+                    (state.value as HomeState.Success).gameEnded = true
+                }
             }
             if (indexWordGuess.intValue == name.length) {
-                state.gameEnded = true
+                (state.value as HomeState.Success).gameEnded = true
+                listener.value = HomeListener.SuccessGuess
             }
         }
     }

@@ -43,7 +43,7 @@ fun LetterUsedBox(
             .background(
                 color = when (state) {
                     LetterUsedBoxState.SUCCESS -> AppColors.greenLight
-                    LetterUsedBoxState.FAILED -> AppColors.orange
+                    LetterUsedBoxState.FAILED -> AppColors.yellow
                 }
             ),
         contentAlignment = Alignment.Center,

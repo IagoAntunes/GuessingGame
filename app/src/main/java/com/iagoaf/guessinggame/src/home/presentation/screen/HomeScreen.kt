@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,10 +28,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +55,7 @@ import com.iagoaf.guessinggame.src.home.presentation.components.LetterBoxBig
 import com.iagoaf.guessinggame.src.home.presentation.components.LetterBoxBigEnum
 import com.iagoaf.guessinggame.src.home.presentation.components.LetterUsedBox
 import com.iagoaf.guessinggame.src.home.presentation.components.LetterUsedBoxState
+import com.iagoaf.guessinggame.src.home.presentation.state.HomeListener
 import com.iagoaf.guessinggame.src.home.presentation.state.HomeState
 import com.iagoaf.guessinggame.src.home.presentation.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -76,6 +74,28 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     var snackBarState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    when (viewModel.listener.value) {
+        HomeListener.SuccessGuess -> {
+            LaunchedEffect(Unit) {
+                scope.launch {
+                    snackBarState.showSnackbar("Acertou!")
+                }
+            }
+        }
+
+        HomeListener.GameOver -> {
+            LaunchedEffect(Unit) {
+                scope.launch {
+                    snackBarState.showSnackbar("Game Over!")
+                }
+            }
+        }
+
+        HomeListener.Idle -> {
+
+        }
+    }
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(
@@ -87,7 +107,9 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             // Content
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier.fillMaxSize()
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
                     .padding(vertical = 16.dp),
             ) {
                 Image(
@@ -98,6 +120,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
+                        .height(59.dp)
+                        .width(310.dp)
 
                 )
                 Log.i("HomeScreen", "State: ${viewModel.state.value}")
@@ -110,19 +134,14 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         )
                     }
 
-                    is HomeState.Error -> {
+                    is HomeState.Error -> {}
 
-                    }
-
-                    is HomeState.Idle -> {
-
-                    }
+                    is HomeState.Idle -> {}
 
                     is HomeState.Success -> {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(paddingValues)
                                 .padding(horizontal = 24.dp)
                         ) {
                             Spacer(modifier = Modifier.height(24.dp))
@@ -211,15 +230,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                             fontWeight = FontWeight.Bold,
                                             color = AppColors.purpleM
                                         )
-                                        viewModel.selectedWord?.let {
-                                            Text(
-                                                it.value?.hint ?: "NAO",
-                                                fontFamily = notoSansFont,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = AppColors.purpleM
-                                            )
-                                        }
+                                        Text(
+                                            viewModel.selectedWord.value?.hint ?: "NAO",
+                                            fontFamily = notoSansFont,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = AppColors.purpleM
+                                        )
                                     }
                                 }
                             }
@@ -250,12 +267,16 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 BasicTextField(
                                     value = guessState.value,
                                     onValueChange = { item ->
-                                        if (guessState.value.isEmpty()) {
-                                            guessState.value = item
-                                        } else if (item == "") {
-                                            guessState.value = ""
+                                        if ((viewModel.listener.value != HomeListener.GameOver)) {
+                                            if (guessState.value.isEmpty()) {
+                                                guessState.value = item
+                                            } else if (item == "") {
+                                                guessState.value = ""
+                                            }
                                         }
+
                                     },
+                                    enabled = !(viewModel.state.value as HomeState.Success).gameEnded,
                                     textStyle = TextStyle(
                                         fontFamily = notoSansFont,
                                         fontSize = 16.sp,
@@ -285,6 +306,12 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 Spacer(Modifier.width(16.dp))
                                 Button(
                                     onClick = {
+                                        if (viewModel.listener.value == HomeListener.GameOver
+                                            ||
+                                            (viewModel.state.value as HomeState.Success).gameEnded
+                                        ) {
+                                            return@Button
+                                        }
                                         if (guessState.value.isEmpty()) {
                                             scope.launch {
                                                 snackBarState.showSnackbar("Digite uma letra")
@@ -296,12 +323,15 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                     },
                                     shape = RoundedCornerShape(7.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        contentColor = AppColors.purpleL,
-                                        containerColor = AppColors.purpleL
+                                        contentColor = if ((viewModel.state.value as HomeState.Success).gameEnded
+                                        ) AppColors.gray400 else AppColors.purpleL,
+                                        containerColor = if ((viewModel.state.value as HomeState.Success).gameEnded
+                                        ) AppColors.gray400 else AppColors.purpleL
                                     ),
                                     border = BorderStroke(
                                         width = 2.dp,
-                                        color = AppColors.purpleM
+                                        color = if ((viewModel.state.value as HomeState.Success).gameEnded
+                                        ) AppColors.gray400 else AppColors.purpleM
                                     ),
                                     modifier = Modifier.height(46.dp)
                                 ) {
@@ -326,8 +356,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 color = AppColors.black
                             )
                             Spacer(Modifier.height(8.dp))
-                            LazyRow(
-                            ) {
+                            LazyRow {
                                 items(viewModel.lettersTried.size) { index ->
                                     val letterTry =
                                         viewModel.lettersTried[viewModel.lettersTried.size - 1 - index]

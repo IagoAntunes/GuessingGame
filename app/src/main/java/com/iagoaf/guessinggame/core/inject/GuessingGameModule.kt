@@ -6,10 +6,8 @@ import com.iagoaf.guessinggame.src.home.infra.datasource.IWordsDataSource
 import com.iagoaf.guessinggame.src.home.infra.repository.WordsRepositoryImpl
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
